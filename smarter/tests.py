@@ -130,15 +130,15 @@ class Tests(TestCase):
 
     def test_initial_option(self):
         r = self.client.get('/test/testmodel/add/?text=Hohoho!')
-        self.assertTrue('Hohoho!</textarea>' in r.content)
+        self.assertTrue(b'Hohoho!</textarea>' in r.content)
 
     def test_fields_option(self):
         r = self.client.get('/test/testmodel/add/')
-        self.assertTrue(not 'id_is_published' in r.content)
+        self.assertTrue(not b'id_is_published' in r.content)
 
     def test_exclude_option(self):
         r = self.client.get('/test/testmodel/publish/')
-        self.assertTrue(not 'id_text' in r.content)        
+        self.assertTrue(not b'id_text' in r.content)        
 
     def test_generic_views_write(self):
         """

@@ -11,6 +11,16 @@ from django.conf.urls.defaults import patterns, include, url
 from django.forms.models import modelform_factory, ModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from collections import Callable
+from itertools import chain
+
+
+try:
+    unicode
+except NameError:  # python3
+    string_types = (bytes, str)
+else:  # python2
+    string_types = (str, unicode)
 
 
 class AlreadyRegistered(Exception):
@@ -180,16 +190,16 @@ class GenericViews(object):
                 pass
 
             self._actions.append(action)
-            self._options[action] = dict(_baseconfig.get(action, {}).items() +
-                                         defaults.items() + 
-                                         options.get(action, {}).items())
+            self._options[action] = dict(chain(_baseconfig.get(action, {}).items(),
+                                               defaults.items(),
+                                               options.get(action, {}).items()))
 
         # Validate action names and URLs
         for action in self._actions:
             if re.match(r"^((get_|_|-).*|.*__.*)", action):
                 raise InvalidAction("Invalid action name: %s" % action)
             if self.get_param(action, 'url') is None:
-                print self._options
+                print(self._options)
                 raise Exception("Undefined URL for action %s!" % action)
 
         # Validate and setup other params
@@ -224,7 +234,7 @@ class GenericViews(object):
         }
         template = self.get_param(request_or_action, 'template')
 
-        if isinstance(template, (str, unicode)):
+        if isinstance(template, string_types):
             return template % format
 
         if is_ajax is None and hasattr(request_or_action, 'is_ajax'):
@@ -430,7 +440,7 @@ class GenericViews(object):
         # Always redirect after form save to prevent re-POST.
         if kwargs.get('form_saved', False):
             redirect_path = self.get_param(request, 'redirect')
-            if callable(redirect_path):
+            if isinstance(redirect_path, Callable):
                 return redirect(redirect_path(self, request, **kwargs))
             else:
                 return redirect(redirect_path)
